@@ -1,6 +1,5 @@
 import 'package:custom_bottom_app_bar/notch_clipper.dart';
 import 'package:flutter/material.dart';
-import 'dart:math';
 
 class CustomBottomAppBar extends StatefulWidget {
   final void Function(int) onPressed;
@@ -27,7 +26,8 @@ class CustomBottomAppBar extends StatefulWidget {
   _CustomBottomAppBarState createState() => _CustomBottomAppBarState();
 }
 
-class _CustomBottomAppBarState extends State<CustomBottomAppBar> {
+class _CustomBottomAppBarState extends State<CustomBottomAppBar>
+    with SingleTickerProviderStateMixin {
   void Function(int) onPressed;
   int currentSelectedIndex;
   Color selectedColor;
@@ -38,10 +38,12 @@ class _CustomBottomAppBarState extends State<CustomBottomAppBar> {
   List<IconData> buttonIcons;
   int totalStop;
   int lastIndex;
+  double lastCenterX;
   double centerX;
   double partitionWidth;
   AnimationController _animationController;
   double distance = 0.0;
+  double direction = 1.0;
 
   void initState() {
     super.initState();
@@ -52,8 +54,8 @@ class _CustomBottomAppBarState extends State<CustomBottomAppBar> {
     buttonIcons = widget.buttonIcons;
     lastIndex = 0;
     partitionWidth = MediaQuery.of(context).size.width / totalStop;
-    centerX = partitionWidth * (currentSelectedIndex + 1 - 1) +
-        partitionWidth / 2; // TODO
+    lastCenterX =
+        centerX = partitionWidth * currentSelectedIndex + partitionWidth / 2;
   }
 
   @override
@@ -101,7 +103,17 @@ class _CustomBottomAppBarState extends State<CustomBottomAppBar> {
               currentSelectedIndex = i;
               distance =
                   partitionWidth * (currentSelectedIndex - lastIndex).abs();
-              // TODO: update
+              direction = currentSelectedIndex > lastIndex ? 1.0 : -1.0;
+              if (_animationController == null) {
+                _animationController = AnimationController(
+                  vsync: this,
+                  duration: const Duration(milliseconds: 500),
+                );
+                _animationController.forward().then((value) {
+                  lastCenterX = centerX;
+                  _animationController.dispose();
+                });
+              }
             });
             onPressed(i);
           },
@@ -122,6 +134,12 @@ class _CustomBottomAppBarState extends State<CustomBottomAppBar> {
   }
 
   Widget _buildBackground(BuildContext context) {
+    if (_animationController == null) {
+      centerX = centerX;
+    } else {
+      centerX = lastCenterX + distance * _animationController.value * direction;
+    }
+    
     return Container(
       child: ClipPath(
         clipper: NotchClipper(
