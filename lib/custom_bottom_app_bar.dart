@@ -1,5 +1,6 @@
 import 'package:custom_bottom_app_bar/notch_clipper.dart';
 import 'package:flutter/material.dart';
+import 'dart:math';
 
 class CustomBottomAppBar extends StatefulWidget {
   final void Function(int) onPressed;
@@ -8,6 +9,7 @@ class CustomBottomAppBar extends StatefulWidget {
   final Color backgroundColor;
   final Color backColor;
   final double height;
+  final List<IconData> buttonIcons;
 
   CustomBottomAppBar({
     Key key,
@@ -17,7 +19,9 @@ class CustomBottomAppBar extends StatefulWidget {
     this.height,
     this.backgroundColor,
     this.backColor,
-  }) : super(key: key);
+    this.buttonIcons,
+  })  : assert(buttonIcons.length > 2),
+        super(key: key);
 
   @override
   _CustomBottomAppBarState createState() => _CustomBottomAppBarState();
@@ -31,17 +35,33 @@ class _CustomBottomAppBarState extends State<CustomBottomAppBar> {
   Color backgroundColor;
   Color backColor;
   double height;
+  List<IconData> buttonIcons;
+  int totalStop;
+  int lastIndex;
+  double centerX;
+  double partitionWidth;
+  AnimationController _animationController;
+  double distance = 0.0;
 
   void initState() {
     super.initState();
     onPressed = widget.onPressed ?? (int) {};
     height = widget.height ?? 50.0;
     currentSelectedIndex = 0;
+    totalStop = widget.buttonIcons.length;
+    buttonIcons = widget.buttonIcons;
+    lastIndex = 0;
+    partitionWidth = MediaQuery.of(context).size.width / totalStop;
+    centerX = partitionWidth * (currentSelectedIndex + 1 - 1) +
+        partitionWidth / 2; // TODO
   }
 
   @override
   void dispose() {
     super.dispose();
+    if (_animationController == null) {
+      _animationController.dispose();
+    }
   }
 
   @override
@@ -59,11 +79,7 @@ class _CustomBottomAppBarState extends State<CustomBottomAppBar> {
           _buildBackground(context),
           _buildButtonList(
             context,
-            [
-              Icons.menu,
-              Icons.person_outline,
-              Icons.add_circle_outline,
-            ],
+            buttonIcons,
           ),
         ],
       ),
@@ -81,11 +97,16 @@ class _CustomBottomAppBarState extends State<CustomBottomAppBar> {
         IconButton(
           onPressed: () {
             setState(() {
+              lastIndex = currentSelectedIndex;
               currentSelectedIndex = i;
+              distance =
+                  partitionWidth * (currentSelectedIndex - lastIndex).abs();
+              // TODO: update
             });
             onPressed(i);
           },
-          color: i == currentSelectedIndex ? Colors.transparent : unselectedColor,
+          color:
+              i == currentSelectedIndex ? Colors.transparent : unselectedColor,
           icon: Icon(buttonIcons[i]),
           iconSize: 30.0,
         ),
@@ -103,7 +124,8 @@ class _CustomBottomAppBarState extends State<CustomBottomAppBar> {
   Widget _buildBackground(BuildContext context) {
     return Container(
       child: ClipPath(
-        clipper: NotchClipper(totalStop: 3, position: currentSelectedIndex + 1, notchSize: Size(50.0, 50.0)),
+        clipper: NotchClipper(
+            totalStop: 3, centerX: centerX, notchSize: Size(50.0, 50.0)),
         child: Container(
           color: backgroundColor,
         ),

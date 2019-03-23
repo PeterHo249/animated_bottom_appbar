@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
 class NotchClipper extends CustomClipper<Path> {
-  final int position;
+  final double centerX;
   final int totalStop;
   final Size notchSize;
 
   NotchClipper({
     this.totalStop = 2,
-    this.position = 1,
+    this.centerX = 0.0,
     this.notchSize = const Size(30.0, 30.0),
   });
 
@@ -16,7 +16,7 @@ class NotchClipper extends CustomClipper<Path> {
     final partitionWidth = size.width / totalStop;
     final bezierLenght = notchSize.width / 2 + 10.0 + partitionWidth * 0.2;
     final centerPoint = Offset(
-      partitionWidth * (position - 1) + partitionWidth / 2,
+      centerX,
       notchSize.height / 2 + 10.0,
     );
     final startPoint = Offset(
