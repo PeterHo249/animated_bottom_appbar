@@ -30,14 +30,11 @@ class MyHomePage extends StatelessWidget {
         title: Text(title),
       ),
       bottomNavigationBar: CustomBottomAppBar(
+        backColor: Colors.deepPurple[100],
         backgroundColor: Colors.red,
-        onPressed: (index) {
-          print('in main');
-          print(index);
-        },
       ),
       body: Container(
-        color: Colors.deepPurple[200],
+        color: Colors.deepPurple[100],
       ),
     );
   }

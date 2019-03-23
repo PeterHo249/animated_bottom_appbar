@@ -6,6 +6,7 @@ class CustomBottomAppBar extends StatefulWidget {
   final Color selectedColor;
   final Color unselectedColor;
   final Color backgroundColor;
+  final Color backColor;
   final double height;
 
   CustomBottomAppBar({
@@ -15,6 +16,7 @@ class CustomBottomAppBar extends StatefulWidget {
     this.unselectedColor,
     this.height,
     this.backgroundColor,
+    this.backColor,
   }) : super(key: key);
 
   @override
@@ -27,6 +29,7 @@ class _CustomBottomAppBarState extends State<CustomBottomAppBar> {
   Color selectedColor;
   Color unselectedColor;
   Color backgroundColor;
+  Color backColor;
   double height;
 
   void initState() {
@@ -47,8 +50,9 @@ class _CustomBottomAppBarState extends State<CustomBottomAppBar> {
     unselectedColor = widget.unselectedColor ?? Theme.of(context).disabledColor;
     backgroundColor =
         widget.backgroundColor ?? Theme.of(context).bottomAppBarColor;
+    backColor = widget.backColor ?? Colors.white;
     return Container(
-      color: Colors.deepPurple[200],
+      color: backColor,
       height: height,
       child: Stack(
         children: [
@@ -78,11 +82,10 @@ class _CustomBottomAppBarState extends State<CustomBottomAppBar> {
           onPressed: () {
             setState(() {
               currentSelectedIndex = i;
-              print(currentSelectedIndex);
             });
             onPressed(i);
           },
-          color: i == currentSelectedIndex ? selectedColor : unselectedColor,
+          color: i == currentSelectedIndex ? Colors.transparent : unselectedColor,
           icon: Icon(buttonIcons[i]),
           iconSize: 30.0,
         ),
@@ -100,7 +103,7 @@ class _CustomBottomAppBarState extends State<CustomBottomAppBar> {
   Widget _buildBackground(BuildContext context) {
     return Container(
       child: ClipPath(
-        clipper: NotchClipper(totalStop: 3, notchSize: Size(50.0, 50.0)),
+        clipper: NotchClipper(totalStop: 3, position: currentSelectedIndex + 1, notchSize: Size(50.0, 50.0)),
         child: Container(
           color: backgroundColor,
         ),

@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 
 class NotchClipper extends CustomClipper<Path> {
@@ -16,22 +14,54 @@ class NotchClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     final partitionWidth = size.width / totalStop;
+    final bezierLenght = notchSize.width / 2 + 10.0 + partitionWidth * 0.2;
     final centerPoint = Offset(
       partitionWidth * (position - 1) + partitionWidth / 2,
+      notchSize.height / 2 + 10.0,
+    );
+    final startPoint = Offset(
+      centerPoint.dx - bezierLenght,
       0.0,
     );
+    final endPoint = Offset(
+      centerPoint.dx + bezierLenght,
+      0.0,
+    );
+
+    final controlPoint11 = Offset(
+      startPoint.dx + bezierLenght * 0.5,
+      startPoint.dy,
+    );
+    final controlPoint12 = Offset(
+      centerPoint.dx - bezierLenght * 0.7,
+      centerPoint.dy,
+    );
+    final controlPoint21 = Offset(
+      endPoint.dx - bezierLenght * 0.5,
+      startPoint.dy,
+    );
+    final controlPoint22 = Offset(
+      centerPoint.dx + bezierLenght * 0.7,
+      centerPoint.dy,
+    );
+
     final path = Path();
-    path.lineTo(centerPoint.dx - notchSize.width / 2 - 3.0, 0.0);
-    path.arcTo(
-      Rect.fromLTWH(
-        centerPoint.dx - notchSize.width / 2 - 3.0,
-        -notchSize.height / 2 - 3.0,
-        notchSize.width + 6.0,
-        notchSize.height + 6.0,
-      ),
-      pi,
-      -pi,
-      true,
+    path.lineTo(startPoint.dx, startPoint.dy);
+    path.cubicTo(
+      controlPoint11.dx,
+      controlPoint11.dy,
+      controlPoint12.dx,
+      controlPoint12.dy,
+      centerPoint.dx,
+      centerPoint.dy,
+    );
+    path.cubicTo(
+      controlPoint22.dx,
+      controlPoint22.dy,
+      controlPoint21.dx,
+      controlPoint21.dy,
+      endPoint.dx,
+      endPoint.dy,
     );
     path.lineTo(size.width, 0.0);
     path.lineTo(size.width, size.height);
