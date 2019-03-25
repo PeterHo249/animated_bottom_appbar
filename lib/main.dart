@@ -31,11 +31,12 @@ class MyHomePage extends StatelessWidget {
       ),
       bottomNavigationBar: CustomBottomAppBar(
         backColor: Colors.deepPurple[100],
-        backgroundColor: Colors.red,
+        backgroundColor: Colors.white,
         buttonIcons: [
           Icons.menu,
           Icons.person_outline,
           Icons.add_circle_outline,
+          Icons.comment,
         ],
       ),
       body: Container(

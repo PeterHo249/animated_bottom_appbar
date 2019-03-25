@@ -1,13 +1,22 @@
 import 'package:custom_bottom_app_bar/notch_clipper.dart';
 import 'package:flutter/material.dart';
 
+/// Animated Bottom Appbar
+///
+/// [selectedColor] is color of icon when be selected.
+/// [unselectedColor] is color of icon when be unselected.
+/// [backgroundColor] is background color of appbar.
+/// [backColor] should be background color of main view.
+/// [buttonIcons] is list of icon to generate button.
+/// [onPressed] is callback trigger when a button is pressed.
+///
+/// All parameters should not be null.
 class CustomBottomAppBar extends StatefulWidget {
   final void Function(int) onPressed;
   final Color selectedColor;
   final Color unselectedColor;
   final Color backgroundColor;
   final Color backColor;
-  final double height;
   final List<IconData> buttonIcons;
 
   CustomBottomAppBar({
@@ -15,11 +24,10 @@ class CustomBottomAppBar extends StatefulWidget {
     this.onPressed,
     this.selectedColor,
     this.unselectedColor,
-    this.height,
     this.backgroundColor,
     this.backColor,
     this.buttonIcons,
-  })  : assert(buttonIcons.length > 2),
+  })  : assert(buttonIcons.length >= 2),
         super(key: key);
 
   @override
@@ -27,7 +35,7 @@ class CustomBottomAppBar extends StatefulWidget {
 }
 
 class _CustomBottomAppBarState extends State<CustomBottomAppBar>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   void Function(int) onPressed;
   int currentSelectedIndex;
   Color selectedColor;
@@ -42,15 +50,17 @@ class _CustomBottomAppBarState extends State<CustomBottomAppBar>
   double centerX;
   double partitionWidth;
   AnimationController _animationController;
-  Tween<double> _tween;
   Animation<double> _animation;
+  AnimationController _iconAnimationController;
+  Animation<double> _iconAnimation;
   double distance = 0.0;
   double direction = 1.0;
+  var notchSize = Size(50.0, 50.0);
 
   void initState() {
     super.initState();
     onPressed = widget.onPressed ?? (int) {};
-    height = widget.height ?? 50.0;
+    height = 75.0;
     currentSelectedIndex = 0;
     totalStop = widget.buttonIcons.length;
     buttonIcons = widget.buttonIcons;
@@ -60,20 +70,32 @@ class _CustomBottomAppBarState extends State<CustomBottomAppBar>
       duration: const Duration(milliseconds: 200),
     )..addStatusListener(
         (status) {
+          if (status == AnimationStatus.forward) {
+            _iconAnimationController.reverse();
+          }
           if (status == AnimationStatus.completed) {
             lastIndex = currentSelectedIndex;
             lastCenterX = centerX;
+            _iconAnimationController.forward();
           }
         },
       );
-    _tween = Tween<double>(begin: 0.0, end: 1.0);
-    _animation = _tween.animate(_animationController)
-      ..addListener(
-        () {
-          centerX = lastCenterX + distance * _animation.value * direction;
-          setState(() {});
-        },
-      );
+    _animation =
+        Tween<double>(begin: 0.0, end: 1.0).animate(_animationController)
+          ..addListener(
+            () {
+              centerX = lastCenterX + distance * _animation.value * direction;
+              setState(() {});
+            },
+          );
+
+    _iconAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+      value: 1.0,
+    );
+    _iconAnimation =
+        Tween(begin: 0.0, end: 1.0).animate(_iconAnimationController);
   }
 
   @override
@@ -106,6 +128,8 @@ class _CustomBottomAppBarState extends State<CustomBottomAppBar>
             context,
             buttonIcons,
           ),
+          _buildCurrentSelectButton(
+              context, buttonIcons[currentSelectedIndex], centerX)
         ],
       ),
     );
@@ -143,11 +167,18 @@ class _CustomBottomAppBarState extends State<CustomBottomAppBar>
       );
     }
 
-    return Row(
-      mainAxisSize: MainAxisSize.max,
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: buttons,
+    return Column(
+      children: <Widget>[
+        Container(
+          height: notchSize.height / 2,
+        ),
+        Row(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: buttons,
+        ),
+      ],
     );
   }
 
@@ -157,11 +188,40 @@ class _CustomBottomAppBarState extends State<CustomBottomAppBar>
         clipper: NotchClipper(
           totalStop: 3,
           centerX: centerX,
-          notchSize: Size(50.0, 50.0),
+          notchSize: notchSize,
         ),
         child: Container(
           color: backgroundColor,
         ),
+      ),
+    );
+  }
+
+  Widget _buildCurrentSelectButton(
+    BuildContext context,
+    IconData icon,
+    double centerX,
+  ) {
+    var positionRect = Rect.fromLTWH(
+      centerX - notchSize.width / 2,
+      0,
+      notchSize.width,
+      notchSize.height,
+    );
+
+    return Positioned.fromRect(
+      rect: positionRect,
+      child: FloatingActionButton(
+        child: ScaleTransition(
+          scale: _iconAnimation,
+          child: Icon(
+            icon,
+            size: 30.0,
+            color: selectedColor,
+          ),
+        ),
+        backgroundColor: backgroundColor,
+        onPressed: null,
       ),
     );
   }
